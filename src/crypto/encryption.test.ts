@@ -25,6 +25,12 @@ describe('encryption', () => {
       expect(payload1.ciphertext).not.toBe(payload2.ciphertext);
     });
 
+    it('should produce different IVs for the same input', () => {
+      const payload1 = encrypt(PLAINTEXT, PASSWORD);
+      const payload2 = encrypt(PLAINTEXT, PASSWORD);
+      expect(payload1.iv).not.toBe(payload2.iv);
+    });
+
     it('should not include plaintext in ciphertext', () => {
       const payload = encrypt(PLAINTEXT, PASSWORD);
       expect(payload.ciphertext).not.toContain('hunter2');
@@ -46,6 +52,12 @@ describe('encryption', () => {
     it('should throw on tampered ciphertext', () => {
       const payload = encrypt(PLAINTEXT, PASSWORD);
       const tampered: EncryptedPayload = { ...payload, ciphertext: payload.ciphertext.slice(0, -4) + 'dead' };
+      expect(() => decrypt(tampered, PASSWORD)).toThrow();
+    });
+
+    it('should throw on tampered tag', () => {
+      const payload = encrypt(PLAINTEXT, PASSWORD);
+      const tampered: EncryptedPayload = { ...payload, tag: payload.tag.slice(0, -4) + 'dead' };
       expect(() => decrypt(tampered, PASSWORD)).toThrow();
     });
   });
