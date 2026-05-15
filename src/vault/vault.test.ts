@@ -40,6 +40,15 @@ describe('vault', () => {
     expect(value).toBe('hunter2');
   });
 
+  test('setSecret overwrites an existing key', async () => {
+    await setSecret(vaultPath, 'DB_PASSWORD', 'hunter2', password, user);
+    await setSecret(vaultPath, 'DB_PASSWORD', 'newpassword', password, user);
+    const value = await getSecret(vaultPath, 'DB_PASSWORD', password);
+    expect(value).toBe('newpassword');
+    const secrets = await listSecrets(vaultPath);
+    expect(secrets.filter((s) => s.key === 'DB_PASSWORD')).toHaveLength(1);
+  });
+
   test('getSecret throws for missing key', async () => {
     await expect(getSecret(vaultPath, 'MISSING_KEY', password)).rejects.toThrow(
       'Key "MISSING_KEY" not found in vault.'
